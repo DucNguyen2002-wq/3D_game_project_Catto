@@ -692,6 +692,9 @@ GameObject:
   - component: {fileID: 7984204172635038304}
   - component: {fileID: -8756488382227441752}
   - component: {fileID: 6581754687439006883}
+  - component: {fileID: 8807377856978749337}
+  - component: {fileID: -258982491488390409}
+  - component: {fileID: 4647604851980046948}
   m_Layer: 0
   m_Name: First_NPC
   m_TagString: Untagged
@@ -752,13 +755,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NPC_Quest
   questName: "B\u1EAFt chu\u1ED9t"
   questDescription: "H\xE3y b\u1EAFt 5 con chu\u1ED9t"
-  requiredRatCount: 5
+  requiredCount: 5
+  spawnSystem: {fileID: 0}
+  objectiveTracker: {fileID: 0}
+  rewardSystem: {fileID: 0}
   questUI: {fileID: 0}
   questTitleText: {fileID: 0}
   questDescriptionText: {fileID: 0}
   questProgressText: {fileID: 0}
-  collectionArea: {fileID: 0}
-  collectionRadius: 3
+  autoSpawnOnStart: 1
+  startQuestKey: 113
 --- !u!135 &7984204172635038304
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -807,6 +813,57 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
   ItemName: 
   canBePickedUp: 0
+--- !u!114 &8807377856978749337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128107713467346030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b4d504cb89cff45bd3b0bc5701698d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestObjectiveTracker
+  collectionArea: {fileID: 0}
+  collectionRadius: 3
+  targetTag: canPickUp
+--- !u!114 &-258982491488390409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128107713467346030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0736be168686d4645b3b32e129909b61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestRewardSystem
+  foodPrefabs: []
+  waterPrefabs: []
+  rewardSpawnPoint: {fileID: 0}
+  minRewardCount: 2
+  maxRewardCount: 5
+  horizontalSpread: 0.5
+  verticalOffset: 0.5
+  stackHeight: 0.2
+--- !u!114 &4647604851980046948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128107713467346030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64c967e53cb94d84ab1574d60c5a046f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestSpawnSystem
+  spawnPrefab: {fileID: 0}
+  spawnPoints: []
+  randomOffsetRange: 1
+  enableRandomRotation: 0
 --- !u!1 &3130330469132450210
 GameObject:
   m_ObjectHideFlags: 0

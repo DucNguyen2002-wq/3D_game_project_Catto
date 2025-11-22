@@ -6,6 +6,7 @@ TagManager:
   tags:
   - canPickUp
   - Prey
+  - Consumable
   layers:
   - Default
   - TransparentFX

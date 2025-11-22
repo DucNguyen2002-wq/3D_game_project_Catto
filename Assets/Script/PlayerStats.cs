@@ -184,30 +184,30 @@ public class PlayerStats : MonoBehaviour
         return currentHunger <= 0 || currentThirst <= 0;
     }
 
-    void OnGUI()
-    {
-        if (!showDebugInfo) return;
+    //void OnGUI()
+    //{
+    //    if (!showDebugInfo) return;
         
-        if (playerMovement != null && playerMovement.animator != null)
-        {
-            bool isRunning = playerMovement.animator.GetBool("isRunning");
-            bool isWalking = playerMovement.animator.GetBool("isWalking");
+    //    if (playerMovement != null && playerMovement.animator != null)
+    //    {
+    //        bool isRunning = playerMovement.animator.GetBool("isRunning");
+    //        bool isWalking = playerMovement.animator.GetBool("isWalking");
 
-            string state = isRunning ? "RUNNING" : isWalking ? "WALKING" : "IDLE";
-            float hungerRate = GetHungerDecayRate();
-            float thirstRate = GetThirstDecayRate();
+    //        string state = isRunning ? "RUNNING" : isWalking ? "WALKING" : "IDLE";
+    //        float hungerRate = GetHungerDecayRate();
+    //        float thirstRate = GetThirstDecayRate();
 
-            GUI.Box(new Rect(10, 10, 350, 110), "Player Stats");
-            GUI.Label(new Rect(20, 35, 330, 20), $"State: {state}");
-            GUI.Label(new Rect(20, 55, 330, 20), $"Hunger: {currentHunger:F1}/{maxHunger} (-{hungerRate}/min)");
-            GUI.Label(new Rect(20, 75, 330, 20), $"Thirst: {currentThirst:F1}/{maxThirst} (-{thirstRate}/min)");
-            GUI.Label(new Rect(20, 95, 330, 20), $"Instance: {(Instance != null ? "OK" : "NULL")}");
-        }
-        else
-        {
-            GUI.Box(new Rect(10, 10, 350, 80), "Player Stats");
-            GUI.Label(new Rect(20, 35, 330, 20), $"Hunger: {currentHunger:F1}/{maxHunger}");
-            GUI.Label(new Rect(20, 55, 330, 20), $"Thirst: {currentThirst:F1}/{maxThirst}");
-        }
-    }
+    //        GUI.Box(new Rect(10, 10, 350, 110), "Player Stats");
+    //        GUI.Label(new Rect(20, 35, 330, 20), $"State: {state}");
+    //        GUI.Label(new Rect(20, 55, 330, 20), $"Hunger: {currentHunger:F1}/{maxHunger} (-{hungerRate}/min)");
+    //        GUI.Label(new Rect(20, 75, 330, 20), $"Thirst: {currentThirst:F1}/{maxThirst} (-{thirstRate}/min)");
+    //        GUI.Label(new Rect(20, 95, 330, 20), $"Instance: {(Instance != null ? "OK" : "NULL")}");
+    //    }
+    //    else
+    //    {
+    //        GUI.Box(new Rect(10, 10, 350, 80), "Player Stats");
+    //        GUI.Label(new Rect(20, 35, 330, 20), $"Hunger: {currentHunger:F1}/{maxHunger}");
+    //        GUI.Label(new Rect(20, 55, 330, 20), $"Thirst: {currentThirst:F1}/{maxThirst}");
+    //    }
+    //}
 }

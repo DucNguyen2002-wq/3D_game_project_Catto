@@ -3,42 +3,37 @@ using UnityEngine.UI;
 
 public class NPC_Quest : MonoBehaviour
 {
-    [Header("Quest Settings")]
+    [Header("Quest Info")]
     public string questName = "Bat Chuot";
-    public string questDescription = "Hay bat 5 con chuot va mang ve khu vuc tap ket!";
-    public int requiredRatCount = 5; // So luong chuot can bat
+    public string questDescription = "Hay bat {0} con chuot va mang ve khu vuc tap ket!";
+    public int requiredCount = 5;
+    
+    [Header("Quest Components")]
+    public QuestSpawnSystem spawnSystem;
+    public QuestObjectiveTracker objectiveTracker;
+    public QuestRewardSystem rewardSystem;
     
     [Header("UI Settings")]
-    public GameObject questUI; // Panel hien thi quest
-    public Text questTitleText; // Text hien thi ten quest
-    public Text questDescriptionText; // Text hien thi mo ta
-    public Text questProgressText; // Text hien thi tien do (0/5)
+    public GameObject questUI;
+    public Text questTitleText;
+    public Text questDescriptionText;
+    public Text questProgressText;
     
-    [Header("Collection Area")]
-    public Transform collectionArea; // Khu vuc tap ket chuot
-    public float collectionRadius = 3f; // Ban kinh khu vuc tap ket
+    [Header("Quest Behavior")]
+    public bool autoSpawnOnStart = true;
+    public KeyCode startQuestKey = KeyCode.Q;
     
-    // Tham chieu den PlayerDetector component
     private PlayerDetector playerDetector;
-    
-    // Properties de truy cap thong tin tu PlayerDetector
-    private Transform player => playerDetector != null ? playerDetector.detectedPlayer : null;
     private bool playerInRange => playerDetector != null && playerDetector.isPlayerInRange;
     
+    private bool questActive = false;
     private bool questCompleted = false;
-    private int currentRatCount = 0;
 
     void Start()
     {
-        // Lay component PlayerDetector tren cung GameObject
-        playerDetector = GetComponent<PlayerDetector>();
+        InitializeComponents();
+        SetupEventListeners();
         
-        if (playerDetector == null)
-        {
-            Debug.LogError("NPC_Quest can co PlayerDetector component!");
-        }
-        
-        // An UI ban dau
         if (questUI != null)
         {
             questUI.SetActive(false);
@@ -49,61 +44,133 @@ public class NPC_Quest : MonoBehaviour
 
     void Update()
     {
-        // Kiem tra player co trong range khong (su dung PlayerDetector)
+        HandlePlayerInteraction();
+        
+        if (questActive && !questCompleted)
+        {
+            TrackObjectives();
+        }
+    }
+
+    private void InitializeComponents()
+    {
+        playerDetector = GetComponent<PlayerDetector>();
+        if (playerDetector == null)
+        {
+            Debug.LogError("[NPC_Quest] Can co PlayerDetector component!");
+        }
+        
+        // Auto-find components neu chua gan
+        if (spawnSystem == null)
+        {
+            spawnSystem = GetComponent<QuestSpawnSystem>();
+        }
+        
+        if (objectiveTracker == null)
+        {
+            objectiveTracker = GetComponent<QuestObjectiveTracker>();
+        }
+        
+        if (rewardSystem == null)
+        {
+            rewardSystem = GetComponent<QuestRewardSystem>();
+        }
+        
+        ValidateComponents();
+    }
+
+    private void ValidateComponents()
+    {
+        if (spawnSystem == null)
+        {
+            Debug.LogWarning("[NPC_Quest] QuestSpawnSystem chua duoc gan!");
+        }
+        
+        if (objectiveTracker == null)
+        {
+            Debug.LogWarning("[NPC_Quest] QuestObjectiveTracker chua duoc gan!");
+        }
+        
+        if (rewardSystem == null)
+        {
+            Debug.LogWarning("[NPC_Quest] QuestRewardSystem chua duoc gan!");
+        }
+    }
+
+    private void SetupEventListeners()
+    {
+        if (objectiveTracker != null)
+        {
+            objectiveTracker.OnProgressChanged += OnObjectiveProgressChanged;
+            objectiveTracker.OnCompleted += OnObjectiveCompleted;
+        }
+    }
+
+    private void HandlePlayerInteraction()
+    {
         if (playerInRange && !questCompleted)
         {
             ShowQuestUI();
+            
+            if (!questActive && Input.GetKeyDown(startQuestKey))
+            {
+                StartQuest();
+            }
         }
         else
         {
             HideQuestUI();
         }
+    }
+
+    private void TrackObjectives()
+    {
+        if (objectiveTracker != null)
+        {
+            objectiveTracker.CountObjectsInArea(requiredCount);
+        }
+    }
+
+    private void StartQuest()
+    {
+        questActive = true;
+        Debug.Log($"[NPC_Quest] Quest '{questName}' đã bắt đầu!");
         
-        // Dem so chuot trong khu vuc tap ket
+        if (autoSpawnOnStart && spawnSystem != null)
+        {
+            spawnSystem.SpawnObjects(requiredCount);
+        }
+        
+        UpdateQuestUI();
+    }
+
+    private void OnObjectiveProgressChanged(int current, int required)
+    {
+        UpdateQuestUI();
+    }
+
+    private void OnObjectiveCompleted()
+    {
         if (!questCompleted)
         {
-            CountRatsInCollectionArea();
+            CompleteQuest();
         }
     }
 
-    void CountRatsInCollectionArea()
+    private void CompleteQuest()
     {
-        if (collectionArea == null) return;
+        questCompleted = true;
+        Debug.Log($"[NPC_Quest] Quest '{questName}' hoàn thành!");
         
-        // Tim tat ca object co tag "canPickUp"
-        GameObject[] allPreys = GameObject.FindGameObjectsWithTag("canPickUp");
-        int ratCount = 0;
+        UpdateQuestUI();
         
-        foreach (GameObject prey in allPreys)
+        if (rewardSystem != null)
         {
-            // Kiem tra xem co phai la chuot chet khong
-            AI_Movement_Prey preyScript = prey.GetComponent<AI_Movement_Prey>();
-            if (preyScript != null && preyScript.isDead)
-            {
-                // Kiem tra xem co trong khu vuc tap ket khong
-                float distance = Vector3.Distance(collectionArea.position, prey.transform.position);
-                if (distance <= collectionRadius)
-                {
-                    ratCount++;
-                }
-            }
-        }
-        
-        // Cap nhat so luong
-        if (ratCount != currentRatCount)
-        {
-            currentRatCount = ratCount;
-            UpdateQuestUI();
-            
-            // Kiem tra hoan thanh quest
-            if (currentRatCount >= requiredRatCount && !questCompleted)
-            {
-                CompleteQuest();
-            }
+            rewardSystem.GiveReward();
         }
     }
 
-    void ShowQuestUI()
+    private void ShowQuestUI()
     {
         if (questUI != null && !questUI.activeSelf)
         {
@@ -111,7 +178,7 @@ public class NPC_Quest : MonoBehaviour
         }
     }
 
-    void HideQuestUI()
+    private void HideQuestUI()
     {
         if (questUI != null && questUI.activeSelf && !questCompleted)
         {
@@ -119,7 +186,7 @@ public class NPC_Quest : MonoBehaviour
         }
     }
 
-    void UpdateQuestUI()
+    private void UpdateQuestUI()
     {
         if (questTitleText != null)
         {
@@ -128,40 +195,61 @@ public class NPC_Quest : MonoBehaviour
         
         if (questDescriptionText != null)
         {
-            questDescriptionText.text = questDescription;
+            questDescriptionText.text = string.Format(questDescription, requiredCount);
+            
+            if (!questActive)
+            {
+                questDescriptionText.text += $"\n\n[{startQuestKey}] Nhận nhiệm vụ";
+            }
         }
         
         if (questProgressText != null)
         {
-            questProgressText.text = $"Tien do: {currentRatCount}/{requiredRatCount}";
-            
-            if (questCompleted)
+            if (!questActive)
             {
-                questProgressText.text = "Hoan thanh!";
+                questProgressText.text = "Chưa bắt đầu";
+                questProgressText.color = Color.white;
+            }
+            else if (questCompleted)
+            {
+                questProgressText.text = "Hoàn thành!";
                 questProgressText.color = Color.green;
+            }
+            else
+            {
+                int current = objectiveTracker != null ? objectiveTracker.GetCurrentCount() : 0;
+                questProgressText.text = $"Tiến độ: {current}/{requiredCount}";
+                questProgressText.color = Color.yellow;
             }
         }
     }
 
-    void CompleteQuest()
-    {
-        questCompleted = true;
-        Debug.Log("Quest hoan thanh!");
+    //public void ResetQuest()
+    //{
+    //    questActive = false;
+    //    questCompleted = false;
         
-        UpdateQuestUI();
+    //    if (spawnSystem != null)
+    //    {
+    //        spawnSystem.ClearSpawnedObjects();
+    //    }
         
-        // Co the them phan thuong o day
-        // GiveReward();
-    }
+    //    if (objectiveTracker != null)
+    //    {
+    //        objectiveTracker.ResetProgress();
+    //    }
+        
+    //    UpdateQuestUI();
+    //    Debug.Log($"[NPC_Quest] Quest '{questName}' da duoc reset!");
+    //}
 
-    // Ve gizmos de debug
-    void OnDrawGizmosSelected()
-    {
-        // Ve khu vuc tap ket
-        if (collectionArea != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(collectionArea.position, collectionRadius);
-        }
-    }
+    //void OnDestroy()
+    //{
+    //    // Cleanup event listeners
+    //    if (objectiveTracker != null)
+    //    {
+    //        objectiveTracker.OnProgressChanged -= OnObjectiveProgressChanged;
+    //        objectiveTracker.OnCompleted -= OnObjectiveCompleted;
+    //    }
+    //}
 }

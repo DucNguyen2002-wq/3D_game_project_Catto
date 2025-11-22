@@ -3,7 +3,7 @@
 public class InteractableObject : MonoBehaviour
 {
     public string ItemName;
-    public bool canBePickedUp = false; // Có thể nhặt được không
+    public bool canBePickedUp = false;
 
     public string GetItemName()
     {
@@ -12,7 +12,6 @@ public class InteractableObject : MonoBehaviour
 
     void Start()
     {
-        // Tự động thêm tag "canPickUp" nếu object có thể nhặt
         if (canBePickedUp && !gameObject.CompareTag("canPickUp"))
         {
             gameObject.tag = "canPickUp";

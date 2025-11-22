@@ -17,6 +17,12 @@ public class PickUpScript : MonoBehaviour
     void Start()
     {
         LayerNumber = LayerMask.NameToLayer("holdLayer");
+        
+        // Kiem tra player da duoc gan chua
+        if (player == null)
+        {
+            Debug.LogError("Player chua duoc gan vao PickUpScript!");
+        }
     }
     
     void Update()
@@ -32,12 +38,21 @@ public class PickUpScript : MonoBehaviour
                     //make sure pickup tag is attached
                     if (hit.transform.gameObject.tag == "canPickUp")
                     {
-                        // Kiểm tra xem có phải là prey không
+                        // KIEM TRA NEU LA CONSUMABLE - TU DONG TIEU THU LUON
+                        ConsumableItem consumable = hit.transform.GetComponent<ConsumableItem>();
+                        if (consumable != null)
+                        {
+                            Debug.Log($"[PickUpScript] Auto-consuming {hit.transform.gameObject.name}...");
+                            consumable.Consume();
+                            return; // Ket thuc, khong pick up
+                        }
+                        
+                        // Kiem tra xem co phai la prey khong
                         AI_Movement_Prey preyMovement = hit.transform.GetComponent<AI_Movement_Prey>();
                         
                         if (preyMovement != null)
                         {
-                            // Nếu là prey sống thì bắt (gọi Die)
+                            // Neu la prey song thi bat (goi Die)
                             if (!preyMovement.isDead)
                             {
                                 preyMovement.Die();
@@ -46,7 +61,7 @@ public class PickUpScript : MonoBehaviour
                                 string itemName = interactable != null ? interactable.GetItemName() : "Prey";
                                 Debug.Log($"Successfully caught {itemName}!");
                             }
-                            // Nếu prey đã chết thì nhặt xác lên
+                            // Neu prey da chet thi nhat xac len
                             else
                             {
                                 PickUpObject(hit.transform.gameObject);
@@ -54,7 +69,7 @@ public class PickUpScript : MonoBehaviour
                         }
                         else
                         {
-                            // Nếu là object thường thì nhặt lên
+                            // Object thuong - pick up
                             PickUpObject(hit.transform.gameObject);
                         }
                     }
@@ -65,6 +80,12 @@ public class PickUpScript : MonoBehaviour
                 StopClipping(); //prevents object from clipping through walls
                 DropObject();
             }
+        }
+        
+        // Nhan F de an/uong item dang cam
+        if (Input.GetKeyDown(KeyCode.F) && heldObj != null)
+        {
+            ConsumeItem();
         }
         
         if (heldObj != null) //if player is holding object
@@ -83,17 +104,38 @@ public class PickUpScript : MonoBehaviour
             heldObjRb.transform.parent = holdPos.transform; //parent object to holdposition
             
             heldObj.layer = LayerNumber; //change the object layer to the holdLayer
-            //make sure object doesnt collide with player, it can cause weird bugs
-            Physics.IgnoreCollision(heldObj.GetComponent<Collider>(), player.GetComponent<Collider>(), true);
             
-            // Tắt InteractableObject khi đang cầm
+            // Ignore collision voi player - an toan hon
+            if (player != null)
+            {
+                Collider objCollider = heldObj.GetComponent<Collider>();
+                Collider playerCollider = player.GetComponent<Collider>();
+                
+                // Neu player khong co Collider, thu tim CharacterController
+                if (playerCollider == null)
+                {
+                    CharacterController charController = player.GetComponent<CharacterController>();
+                    if (charController != null)
+                    {
+                        // CharacterController cung la Collider
+                        playerCollider = charController;
+                    }
+                }
+                
+                if (objCollider != null && playerCollider != null)
+                {
+                    Physics.IgnoreCollision(objCollider, playerCollider, true);
+                }
+            }
+            
+            // Tat InteractableObject khi dang cam
             heldObjInteractable = heldObj.GetComponent<InteractableObject>();
             if (heldObjInteractable != null)
             {
                 heldObjInteractable.enabled = false;
             }
             
-            // Xoay object về góc nằm ngang (reset rotation) - Đặt SAU KHI parent
+            // Xoay object ve goc nam ngang (reset rotation) - Dat SAU KHI parent
             heldObj.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
             
             string itemName = heldObjInteractable != null ? heldObjInteractable.GetItemName() : "Object";
@@ -103,13 +145,33 @@ public class PickUpScript : MonoBehaviour
     
     void DropObject()
     {
-        //re-enable collision with player
-        Physics.IgnoreCollision(heldObj.GetComponent<Collider>(), player.GetComponent<Collider>(), false);
+        // Re-enable collision voi player - an toan hon
+        if (player != null && heldObj != null)
+        {
+            Collider objCollider = heldObj.GetComponent<Collider>();
+            Collider playerCollider = player.GetComponent<Collider>();
+            
+            // Neu player khong co Collider, thu tim CharacterController
+            if (playerCollider == null)
+            {
+                CharacterController charController = player.GetComponent<CharacterController>();
+                if (charController != null)
+                {
+                    playerCollider = charController;
+                }
+            }
+            
+            if (objCollider != null && playerCollider != null)
+            {
+                Physics.IgnoreCollision(objCollider, playerCollider, false);
+            }
+        }
+        
         heldObj.layer = 0; //object assigned back to default layer
         heldObjRb.isKinematic = false;
         heldObj.transform.parent = null; //unparent object
         
-        // Bật lại InteractableObject khi thả
+        // Bat lai InteractableObject khi tha
         if (heldObjInteractable != null)
         {
             heldObjInteractable.enabled = true;
@@ -120,12 +182,32 @@ public class PickUpScript : MonoBehaviour
         heldObjInteractable = null; //clear reference
     }
     
+    void ConsumeItem()
+    {
+        ConsumableItem consumable = heldObj.GetComponent<ConsumableItem>();
+        
+        if (consumable != null)
+        {
+            consumable.Consume();
+            
+            heldObj = null;
+            heldObjRb = null;
+            heldObjInteractable = null;
+            
+            Debug.Log("[PickUpScript] Item consumed");
+        }
+        else
+        {
+            Debug.Log("[PickUpScript] Item cannot be consumed");
+        }
+    }
+    
     void MoveObject()
     {
         //keep object position the same as the holdPosition position
         heldObj.transform.position = holdPos.transform.position;
         
-        // Giữ object luôn ở local rotation (0, 90, 0) - không bị ảnh hưởng bởi parent rotation
+        // Giu object luon o local rotation (0, 90, 0) - khong bi anh huong boi parent rotation
         heldObj.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
     }
     

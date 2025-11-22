@@ -906,6 +906,7 @@ GameObject:
   - component: {fileID: 6397291155531275066}
   - component: {fileID: 9091622764804898338}
   - component: {fileID: -5259302124473115648}
+  - component: {fileID: -1361889559091091958}
   m_Layer: 0
   m_Name: Kitty_001
   m_TagString: Untagged
@@ -993,7 +994,6 @@ MonoBehaviour:
   walkSpeed: 6
   runSpeed: 12
   gravity: -19.62
-  jumpHeight: 3
   groundCheck: {fileID: 0}
   groundDistance: 0.15
   groundMask:
@@ -1013,7 +1013,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseMovement
   mouseSensitivity: 100
-  playerBody: {fileID: 0}
+--- !u!114 &-1361889559091091958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6397291155531275063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 763ed9a0b5974ae4e8a38bd5dbd4c7a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  maxHunger: 100
+  currentHunger: 100
+  hungerDecayRate: 5
+  maxThirst: 100
+  currentThirst: 100
+  thirstDecayRate: 8
+  healthDamageWhenHungry: 2
+  healthDamageWhenThirsty: 3
+  damageInterval: 5
+  hungerBar: {fileID: 0}
+  thirstBar: {fileID: 0}
+  hungerText: {fileID: 0}
+  thirstText: {fileID: 0}
 --- !u!1 &6499904794721092959
 GameObject:
   m_ObjectHideFlags: 0
